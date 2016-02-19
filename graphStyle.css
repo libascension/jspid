@@ -1,0 +1,11 @@
+body {
+	font-family: Arial, sans-serif;
+}
+
+canvas#jspid-plot {
+	width: 90%;
+	height: 500px;
+	margin: 0 auto;
+	display: block;
+	image-rendering: pixelated;
+}

@@ -2,25 +2,34 @@
 <html>
 <head>
 	<title>jspid example</title>
+	<script type="text/javascript" src="pid.js"></script>
+	<link rel="stylesheet" type="text/javascript" href="graphStyle.css"/>
 </head>
-<body>
-	<canvas style="width: 500px; height: 500px; display: block;"></canvas>
+<body onload="initGraph()">
+	<canvas id="jspid-plot"></canvas>
 	<hr/>
 	<h2>Input parameters</h2>
-	<label for="Kp">K<sub>P</sub>&nbsp;</label>
-	<input type="number" id="Kp" min="0.00" step="0.01" value="1.0"/>
-	<br/>
-	<label for="Ki">K<sub>I</sub>&nbsp;</label>
-	<input type="number" id="Ki" min="0.00" step="0.01" value="0.0"/>
-	<br/>
-	<label for="Kd">K<sub>D</sub>&nbsp;</label>
-	<input type="number" id="Kd" min="0.00" step="0.01" value="0.0"/>
-	<br/><br/>
-	<label for="start">Signal start:&nbsp;</label>
-	<input type="number" id="start" min="0.00" step="0.01" value="0.0"/>
-	<br/>
-	<label for="setpoint">Setpoint:&nbsp;</label>
-	<input type="number" id="setpoint" min="0.00" step="0.01" value="10.0"/>
-	
+	<form id="jspid-params" onclick="doPlot(event)" action="#jspid-plot">
+		<label for="Kp">K<sub>P</sub>&nbsp;</label>
+		<input type="number" id="jspid-Kp" step="0.01" value="1.00"/>
+		<br/>
+		<label for="Ki">K<sub>I</sub>&nbsp;</label>
+		<input type="number" id="jspid-Ki" step="0.01" value="0.00"/>
+		<br/>
+		<label for="Kd">K<sub>D</sub>&nbsp;</label>
+		<input type="number" id="jspid-Kd" step="0.01" value="0.00"/>
+		<br/><br/>
+		<label for="start">Signal start:&nbsp;</label>
+		<input type="number" id="jspid-start" step="0.01" value="0.00"/>
+		<br/>
+		<label for="setpoint">Setpoint:&nbsp;</label>
+		<input type="number" id="jspid-setpoint" step="0.01" value="10.00"/>
+		<br/><br/>
+		<h3>Advanced settings</h3>
+		<label for="dt">Sample interval (seconds): </label>
+		<input type="number" id="jspid-dt" min="0.001" step="0.001" value="0.010"/>
+		<br/><br/>
+		<button type="submit">Plot</button>
+	</form>
 </body>
 </html>
