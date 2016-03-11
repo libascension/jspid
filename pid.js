@@ -40,11 +40,13 @@ class Graph {
 		this.ylabel1.y = 15;
 		this.ylabel2.x = -(this.ybox.min + (this.ybox.height()/4 + this.ctx.measureText("Sensor signal").width/2));
 		this.ylabel2.y = 15;
-		
 	}
 	
 	//Draw the inital graph grid
 	initGrid() {
+		//Reset the context in case it has properties set
+		this.resetContext();
+		
 		//Clear grid if there is anything on it
 		this.ctx.fillStyle = "#ffffff";
 		this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
@@ -68,14 +70,15 @@ class Graph {
 		this.ctx.fillText("Sensor signal", this.ylabel2.x, this.ylabel2.y);
 		this.ctx.restore();
 		
+		//Get the window constraints, initialize context for grid lines
 		this.calcWindow();
 		this.ctx.strokeStyle = "#878787";
 		this.ctx.lineWidth = "1";
 		this.ctx.setLineDash([3,3]);
-		
 		this.ctx.font = "13px sans-serif";
 		this.ctx.fillStyle = "#000000";
 		
+		//Draw x-axis labels and grid lines
 		for (var i = this.xscale.min; i <= this.xscale.max; i += this.window.xinterval)
 		{
 			if (i > this.xscale.min && i < this.xscale.max)
@@ -89,6 +92,7 @@ class Graph {
 			this.ctx.fillText(i, (this.convX(i) - (this.ctx.measureText(i).width/2)), this.ybox.max + 15);
 		}
 		
+		//Draw y-axis labels and grid lines
 		for (var i = this.yscale.min; i <= this.yscale.max; i += this.window.yinterval)
 		{
 			if (i > this.yscale.min && i < this.yscale.max)
@@ -104,8 +108,8 @@ class Graph {
 		
 		console.log("Window set up with", this.window.xspacing, 'x', this.window.yspacing, "px unit box,", this.window.xinterval, 'x', this.window.yinterval, "graph units");
 		
-		//Reset line dash for later canvas operations
-		this.ctx.setLineDash([]);
+		//Reset context for later operations
+		this.resetContext();
 	}
 	
 	//Get the tick spacing and interval for the currently defined window
@@ -151,6 +155,10 @@ class Graph {
 				ymax = ymin;
 				ymin = undefined;
 			}
+			else
+			{
+				ymin = undefined;
+			}
 		}
 		else
 		{
@@ -167,6 +175,15 @@ class Graph {
 			this.yscale.max += this.window.yinterval;
 		
 		this.initGrid();
+	}
+	
+	resetContext()
+	{
+		this.ctx.strokeStyle = "#000000";
+		this.ctx.fillStyle = "#000000";
+		this.ctx.font = "15px sans-serif";
+		this.ctx.lineWidth = "1";
+		this.ctx.setLineDash([]);
 	}
 	
 	setCurveColor(color)
@@ -192,11 +209,11 @@ class Graph {
 	}
 	
 	convX(x) {
-		return this.xbox.min + (x * (this.xbox.width()/this.xscale.width()));
+		return this.xbox.min + ((x - this.xscale.min) * (this.xbox.width()/this.xscale.width()));
 	} 
 	
 	convY(y) {
-		return this.ybox.max - (y * (this.ybox.height()/this.yscale.height()));
+		return this.ybox.max - ((y - this.yscale.min) * (this.ybox.height()/this.yscale.height()));
 	}
 	
 	convPoint(x,y) {
@@ -254,6 +271,26 @@ function doPlot(event)
 		graph.nextPoint(graph.xscale.max,setpoint);
 		graph.draw();
 	}
+}
+
+function alertValidity (event)
+{
+	event = event || window.event;
 	
-	return true;
+	var name;
+	
+	if (event.target.name == "jspid-Kp")
+		name = "Kp";
+	else if (event.target.name == "jspid-Ki")
+		name = "Ki";
+	else if (event.target.name == "jspid-Kd")
+		name = "Kd";
+	else if (event.target.name == "jspid-start")
+		name = "System start";
+	else if (event.target.name == "jspid-setpoint")
+		name = "Setpoint";
+	else if (event.target.name == "jspid-dt")
+		name = "Sample interval";
+	
+	alert(name + ": " + event.target.validationMessage);
 }

@@ -9,27 +9,27 @@
 	<canvas id="jspid-plot"></canvas>
 	<hr/>
 	<h2>Input parameters</h2>
-	<form id="jspid-params" onclick="doPlot(event)" action="#jspid-plot">
+	<form id="jspid-params">
 		<label for="jspid-Kp">K<sub>P</sub>&nbsp;</label>
-		<input type="number" name="jspid-Kp" step="0.01" value="1.00"/>
+		<input type="number" name="jspid-Kp" step="0.01" value="1.00" oninvalid="alertValidity(event)"/>
 		<br/>
 		<label for="jspid-Ki">K<sub>I</sub>&nbsp;</label>
-		<input type="number" name="jspid-Ki" step="0.01" value="0.00"/>
+		<input type="number" name="jspid-Ki" step="0.01" value="0.00" oninvalid="alertValidity(event)"/>
 		<br/>
 		<label for="jspid-Kd">K<sub>D</sub>&nbsp;</label>
-		<input type="number" name="jspid-Kd" step="0.01" value="0.00"/>
+		<input type="number" name="jspid-Kd" step="0.01" value="0.00" oninvalid="alertValidity(event)"/>
 		<br/><br/>
 		<label for="jspid-start">System start:&nbsp;</label>
-		<input type="number" name="jspid-start" step="0.01" value="0.00"/>
+		<input type="number" name="jspid-start" step="0.01" value="0.00" oninvalid="alertValidity(event)"/>
 		<br/>
 		<label for="jspid-setpoint">Setpoint:&nbsp;</label>
-		<input type="number" name="jspid-setpoint" step="0.01" value="10.00"/>
+		<input type="number" name="jspid-setpoint" step="0.01" value="10.00" oninvalid="alertValidity(event)"/>
 		<br/><br/>
 		<h3>Advanced settings</h3>
 		<label for="jspid-dt">Sample interval (seconds): </label>
-		<input type="number" name="jspid-dt" min="0.001" step="0.001" value="0.010"/>
+		<input type="number" name="jspid-dt" min="0.001" step="0.001" value="0.010" oninvalid="alertValidity(event)"/>
 		<br/><br/>
-		<button type="submit">Plot</button>
+		<button type="button" onclick="doPlot(event)">Plot</button>
 	</form>
 </body>
 </html>
