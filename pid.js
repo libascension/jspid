@@ -45,9 +45,14 @@ class Graph {
 	
 	//Draw the inital graph grid
 	initGrid() {
+		//Clear grid if there is anything on it
+		this.ctx.fillStyle = "#ffffff";
+		this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+		
 		//Draw outer bounds
-		this.ctx.fillStyle = "#000000";
-		this.ctx.fillRect(this.xbox.min, this.ybox.min, this.xbox.width(), this.ybox.height());
+		this.ctx.strokeStyle = "#000000";
+		this.ctx.lineWidth = "2";
+		this.ctx.strokeRect(this.xbox.min, this.ybox.min, this.xbox.width(), this.ybox.height());
 		this.ctx.fillStyle = "#ffffff";
 		this.ctx.fillRect(this.xbox.min + 2, this.ybox.min + 2, this.xbox.width() - 4, this.ybox.height() - 4);
 		
@@ -64,6 +69,7 @@ class Graph {
 		
 		this.calcWindow();
 		this.ctx.strokeStyle = "#878787";
+		this.ctx.lineWidth = "1";
 		this.ctx.setLineDash([3,3]);
 		
 		this.ctx.font = "13px sans-serif";
@@ -95,23 +101,26 @@ class Graph {
 			this.ctx.fillText(i, this.xbox.min - (this.ctx.measureText(i).width + 5), this.convY(i) + 4);
 		}
 		
+		console.log("Window set up with", this.window.xspacing, 'x', this.window.yspacing, "px unit box,", this.window.xinterval, 'x', this.window.yinterval, "graph units");
+		
+		//Reset line dash for later canvas operations
+		this.ctx.setLineDash([]);
 	}
 	
 	//Get the tick spacing and interval for the currently defined window
 	calcWindow() {
 		//Set initial window parameters
 		this.window = new Object();
+		this.window.yminspacing = 24;
+		this.window.xminspacing = 60;
 		this.window.xspacing = (this.xbox.width()/this.xscale.width());
 		this.window.xinterval = 1;
 		this.window.yspacing = (this.ybox.height()/this.yscale.height());
 		this.window.yinterval = 1;
 		
-		console.log("X",this.window.xspacing,this.window.xinterval);
-		console.log("Y",this.window.yspacing,this.window.yinterval);
-		
 		//Even out X spacing
 		var spacingTemp = this.window.xspacing;
-		while (spacingTemp % 1 != 0)
+		while (spacingTemp < this.window.xminspacing)
 		{
 			this.window.xinterval++;
 			spacingTemp = this.window.xinterval * this.window.xspacing;
@@ -120,15 +129,65 @@ class Graph {
 		
 		//Even out Y spacing
 		spacingTemp = this.window.yspacing;
-		while(spacingTemp % 1 != 0)
+		while(spacingTemp < this.window.yminspacing)
 		{
 			this.window.yinterval++;
 			spacingTemp = this.window.yinterval * this.window.yspacing;
 		}
 		this.window.yspacing = spacingTemp;
+	}
+	
+	scaleYWithPadding(ymin,ymax)
+	{
+		//If only one argument is passed, detect whether it's an upper bound or a lower bound
+		if (ymax === undefined)
+		{
+			if (ymin <= this.yscale.min)
+				this.yscale.min = ymin;
+			else if (ymin >= this.yscale.max)
+			{
+				this.yscale.max = ymin;
+				ymax = ymin;
+				ymin = undefined;
+			}
+		}
+		else
+		{
+			this.yscale.min = (ymin === undefined) ? this.yscale.min : ymin;
+			this.yscale.max = ymax;
+		}
 		
-		console.log("Adjusted X",this.window.xspacing,this.window.xinterval);
-		console.log("Adjusted Y",this.window.yspacing,this.window.yinterval);
+		this.calcWindow();
+		
+		if (ymin !== undefined)
+			this.yscale.min -= this.window.yinterval;
+		
+		if (ymax !== undefined)
+			this.yscale.max += this.window.yinterval;
+		
+		this.initGrid();
+	}
+	
+	setCurveColor(color)
+	{
+		this.ctx.strokeStyle = color;
+	}
+	
+	setInitialPoint(x,y)
+	{
+		var point = this.convPoint(x,y)
+		this.ctx.moveTo(point.x,point.y);
+	}
+	
+	nextPoint(x,y)
+	{
+		var point = this.convPoint(x,y);
+		this.ctx.lineTo(point.x,point.y);
+	}
+	
+	draw()
+	{
+		this.ctx.stroke();
 	}
 	
 	convX(x) {
@@ -157,10 +216,42 @@ function initGraph()
 function doPlot(event)
 {
 	event = event || window.event;
+	var jspidForm = event.target.form;
 	
-	if (event.target.checkValidity())
+	if (jspidForm.checkValidity())
 	{
-	
+		var Kp, Ki, Kd;
+		var start, setpoint;
+		var dt;
+		
+		//Get all of the input values
+		for (var i=0; i < jspidForm.elements.length; i++)
+		{
+			if (jspidForm.elements[i].name == "jspid-Kp")
+				Kp = parseFloat(jspidForm.elements[i].value);
+			
+			if (jspidForm.elements[i].name == "jspid-Ki")
+				Ki = parseFloat(jspidForm.elements[i].value);
+			
+			if (jspidForm.elements[i].name == "jspid-Kd")
+				Kd = parseFloat(jspidForm.elements[i].value);
+			
+			if (jspidForm.elements[i].name == "jspid-start")
+				start = parseFloat(jspidForm.elements[i].value);
+			
+			if (jspidForm.elements[i].name == "jspid-setpoint")
+				setpoint = parseFloat(jspidForm.elements[i].value);
+			
+			if (jspidForm.elements[i].name == "jspid-dt")
+				dt = parseFloat(jspidForm.elements[i].value);
+		}
+		
+		//DRAW SETPOINT LINE *************
+		graph.scaleYWithPadding(setpoint);
+		graph.setCurveColor("#0000ff");
+		graph.setInitialPoint(0,setpoint);
+		graph.nextPoint(graph.xscale.max,setpoint);
+		graph.draw();
 	}
 	
 	return true;
