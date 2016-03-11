@@ -57,6 +57,7 @@ class Graph {
 		this.ctx.fillRect(this.xbox.min + 2, this.ybox.min + 2, this.xbox.width() - 4, this.ybox.height() - 4);
 		
 		//Draw axis labels
+		this.ctx.font = "15px sans-serif";
 		this.ctx.fillStyle = "#000000";
 		this.ctx.fillText("Time (s)", this.xlabel.x, this.xlabel.y);
 		this.ctx.save();
