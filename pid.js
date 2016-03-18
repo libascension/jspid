@@ -3,8 +3,10 @@
 "use strict";
 var graph;
 
-class Graph {
-	constructor(canvas, xmin, ymin, xmax, ymax) {
+class Graph 
+{
+	constructor(canvas, xmin, ymin, xmax, ymax) 
+	{
 		this.canvas = canvas;
 		this.ctx = canvas.getContext('2d');
 
@@ -43,7 +45,8 @@ class Graph {
 	}
 	
 	//Draw the inital graph grid
-	initGrid() {
+	initGrid() 
+	{
 		//Reset the context in case it has properties set
 		this.resetContext();
 		
@@ -113,7 +116,8 @@ class Graph {
 	}
 	
 	//Get the tick spacing and interval for the currently defined window
-	calcWindow() {
+	calcWindow() 
+	{
 		//Set initial window parameters
 		this.window = new Object();
 		this.window.yminspacing = 24;
@@ -149,14 +153,10 @@ class Graph {
 		{
 			if (ymin <= this.yscale.min)
 				this.yscale.min = ymin;
-			else if (ymin >= this.yscale.max)
+			else
 			{
 				this.yscale.max = ymin;
 				ymax = ymin;
-				ymin = undefined;
-			}
-			else
-			{
 				ymin = undefined;
 			}
 		}
@@ -193,6 +193,7 @@ class Graph {
 	
 	setInitialPoint(x,y)
 	{
+		this.ctx.beginPath();
 		var point = this.convPoint(x,y)
 		this.ctx.moveTo(point.x,point.y);
 	}
@@ -222,6 +223,85 @@ class Graph {
 		point.y = this.convY(y);
 		
 		return point;
+	}
+}
+
+class PID 
+{
+	constructor(Kp,Ki,Kd,start,setpoint,dt) 
+	{
+		//Set provided constants
+		this.Kp = Kp;
+		this.Ki = Ki;
+		this.Kd = Kd;
+		this.curPos = start;
+		this.setpoint = setpoint;
+		this.dt = dt;
+		
+		//Internal variables
+		this.time = 0;
+		this.accumError = 0;
+		this.lastPos = this.curPos;
+		this.lastDeltaRatio = 0;
+		this.curDeltaRatio = 0;
+	}
+	
+	setInitialPosition(pos)
+	{
+		this.curPos = pos;
+	}
+	
+	moveSystem(delta)
+	{
+		this.lastPos = this.curPos;
+		this.curPos += delta;
+	}
+	
+	getNormalizedP()
+	{
+		return this.Kp*this.dt;
+	}
+	
+	getNormalizedI()
+	{
+		return this.Ki*this.dt;
+	}
+	
+	getNormalizedD()
+	{
+		return this.Kd*this.dt;
+	}	
+	
+	getCurrentError()
+	{
+		return this.setpoint - this.curPos;
+	}
+	
+	getNormalizedError()
+	{
+		return this.getCurrentError()*this.dt;
+	}
+	
+	getCurrentDerivative()
+	{
+		return (this.curPoint - this.lastPoint)/this.dt;
+	}
+	
+	testRun()
+	{
+		var pTerm, iTerm, dTerm;
+
+		do 
+		{
+			pTerm = this.getNormalizedP()*this.getCurrentError();
+			
+			this.accumError += this.getNormalizedError();
+			iTerm = this.getNormalizedI()*this.accumError;
+			
+			dTerm = this.getNormalizedD()*this.getCurrentDerivative();
+			
+			this.moveSystem(pTerm + iTerm + dTerm);
+		} while (Math.abs(getCurrentError()) > 0.0001);
 	}
 }
 
@@ -266,6 +346,7 @@ function doPlot(event)
 		
 		//DRAW SETPOINT LINE *************
 		graph.scaleYWithPadding(setpoint);
+		graph.resetContext();
 		graph.setCurveColor("#0000ff");
 		graph.setInitialPoint(0,setpoint);
 		graph.nextPoint(graph.xscale.max,setpoint);
