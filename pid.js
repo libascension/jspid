@@ -228,6 +228,7 @@ class Graph
 
 class PID 
 {
+	//PID SETUP ************************************
 	constructor(Kp,Ki,Kd,start,setpoint,dt) 
 	{
 		//Set provided constants
@@ -242,8 +243,13 @@ class PID
 		this.time = 0;
 		this.accumError = 0;
 		this.lastPos = this.curPos;
-		this.lastDeltaRatio = 0;
-		this.curDeltaRatio = 0;
+		this.errorHistory = new Array();
+		this.history = new Array();
+		this.divergingCount = 0;
+		this.min = Infinity;
+		this.max = -Infinity;
+		
+		this.history[0] = this.curPos;
 	}
 	
 	setInitialPosition(pos)
@@ -251,11 +257,7 @@ class PID
 		this.curPos = pos;
 	}
 	
-	moveSystem(delta)
-	{
-		this.lastPos = this.curPos;
-		this.curPos += delta;
-	}
+	//PROPERTY ACQUISITION ****************************
 	
 	getNormalizedP()
 	{
@@ -284,7 +286,45 @@ class PID
 	
 	getCurrentDerivative()
 	{
-		return (this.curPoint - this.lastPoint)/this.dt;
+		return (this.curPos - this.lastPos)/this.dt;
+	}
+	
+	//STATISTICS UPDATE *******************************
+	
+	updateExtrema()
+	{
+		if (this.curPos > this.max)
+			this.max = this.curPos;
+		if (this.curPos < this.min)
+			this.min = this.curPos;
+	}
+	
+	//PID EMULATION ***********************************
+	
+	moveSystem(delta)
+	{
+		this.lastPos = this.curPos;
+		this.curPos += delta;
+	}
+	
+	diverging()
+	{
+		if (this.errorHistory.length == 3)
+		{
+			var ratios;
+			var ratioDeriv;
+			
+			ratios[0] = (this.errorHistory[0]/this.errorHistory[1]);
+			ratios[1] = (this.errorHistory[1]/this.errorHistory[2]);
+			
+			ratioDeriv = (ratios[0] - ratios[1])/this.dt;
+			
+			this.divergingCount = ratioDeriv > 0 ? this.divergingCount + 1 : 0;
+			
+			return this.divergingCount > 10;
+		}
+		else
+			return false;
 	}
 	
 	testRun()
@@ -301,7 +341,18 @@ class PID
 			dTerm = this.getNormalizedD()*this.getCurrentDerivative();
 			
 			this.moveSystem(pTerm + iTerm + dTerm);
-		} while (Math.abs(getCurrentError()) > 0.0001);
+			
+			for (var i = 0; i < 3; i++)
+			{
+				if (this.errorHistory[i] !== undefined)
+					this.errorHistory[i+1] = this.errorHistory[i];
+			}
+			
+			this.errorHistory[0] = this.getCurrentError();
+			
+			this.updateExtrema();
+			this.history.push(this.curPos)
+		} while (Math.abs(this.getCurrentError()) > 0.0001 && !this.diverging());
 	}
 }
 
