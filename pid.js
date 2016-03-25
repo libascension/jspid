@@ -261,17 +261,17 @@ class PID
 	
 	getNormalizedP()
 	{
-		return this.Kp*this.dt;
+		return this.Kp;
 	}
 	
 	getNormalizedI()
 	{
-		return this.Ki*this.dt;
+		return this.Ki;
 	}
 	
 	getNormalizedD()
 	{
-		return this.Kd*this.dt;
+		return this.Kd;
 	}	
 	
 	getCurrentError()
@@ -333,14 +333,14 @@ class PID
 
 		do 
 		{
-			pTerm = this.getNormalizedP()*this.getCurrentError();
+			pTerm = this.Kp*this.getCurrentError();
 			
 			this.accumError += this.getNormalizedError();
-			iTerm = this.getNormalizedI()*this.accumError;
+			iTerm = this.Ki*this.accumError;
 			
-			dTerm = this.getNormalizedD()*this.getCurrentDerivative();
+			dTerm = this.Kd*this.getCurrentDerivative();
 			
-			this.moveSystem(pTerm + iTerm + dTerm);
+			this.moveSystem(this.dt*(pTerm + iTerm + dTerm));
 			
 			for (var i = 0; i < 3; i++)
 			{
